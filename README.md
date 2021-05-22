@@ -1,0 +1,2 @@
+# AzureSynapse
+AzureSynapse Practice
