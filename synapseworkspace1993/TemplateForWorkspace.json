@@ -25,15 +25,6 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('workspaceName'), '/sqlpool1')]",
-			"type": "Microsoft.Synapse/workspaces/sqlPools",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/nyc_tlc_yellow')]",
 			"type": "Microsoft.Synapse/workspaces/linkedServices",
 			"apiVersion": "2019-06-01-preview",
@@ -185,6 +176,26 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/Serverless_SQ_Analyse')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- Create Database\nCREATE DATABASE mydbname\n\n-- Create data source\n-- create master key that will protect the credentials:\nCREATE MASTER KEY ENCRYPTION BY PASSWORD = 'sknfd#isfnasdkf!bsk1'\n\n-- create credentials for containers in our demo storage account\nCREATE DATABASE SCOPED CREDENTIAL sqlondemand\nWITH IDENTITY='SHARED ACCESS SIGNATURE',  \nSECRET = 'sv=2018-03-28&ss=bf&srt=sco&sp=rl&st=2019-10-14T12%3A10%3A25Z&se=2061-12-31T12%3A10%3A00Z&sig=KlSU2ullCscyTS0An0nozEpo4tO5JAgGBvw%2FJX2lguw%3D'\nGO\nCREATE EXTERNAL DATA SOURCE SqlOnDemandDemo WITH (\n    LOCATION = 'https://sqlondemandstorage.blob.core.windows.net',\n    CREDENTIAL = sqlondemand\n);\n\n\n-- Query CSV files\nSELECT TOP 10 *\nFROM OPENROWSET\n  (\n      BULK 'csv/population/*.csv',\n      DATA_SOURCE = 'SqlOnDemandDemo',\n      FORMAT = 'CSV', PARSER_VERSION = '2.0'\n  )\nWITH\n  (\n      country_code VARCHAR (5)\n    , country_name VARCHAR (100)\n    , year smallint\n    , population bigint\n  ) AS r\nWHERE\n  country_name = 'Luxembourg' AND year = 2017\n\n\n-- Query Parquet files\nSELECT COUNT_BIG(*)\nFROM OPENROWSET\n  (\n      BULK 'parquet/taxi/year=2017/month=9/*.parquet',\n      DATA_SOURCE = 'SqlOnDemandDemo',\n      FORMAT='PARQUET'\n  ) AS nyc\n\n\n-- JSON FILE\n/*\n{  \n   \"_id\":\"ahokw88\",\n   \"type\":\"Book\",\n   \"title\":\"The AWK Programming Language\",\n   \"year\":\"1988\",\n   \"publisher\":\"Addison-Wesley\",\n   \"authors\":[  \n      \"Alfred V. Aho\",\n      \"Brian W. Kernighan\",\n      \"Peter J. Weinberger\"\n   ],\n   \"source\":\"DBLP\"\n}\n*/\n\n-- Query JSON files\nSELECT TOP 10 \n    JSON_VALUE(jsonContent, '$.title') AS title\n  , JSON_VALUE(jsonContent, '$.publisher') as publisher\n  , jsonContent\nFROM OPENROWSET\n  (\n      BULK 'json/books/*.json',\n      DATA_SOURCE = 'SqlOnDemandDemo'\n    , FORMAT='CSV'\n    , FIELDTERMINATOR ='0x0b'\n    , FIELDQUOTE = '0x0b'\n    , ROWTERMINATOR = '0x0b'\n  )\nWITH\n  ( jsonContent varchar(8000) ) AS [r]\nWHERE\n  JSON_VALUE(jsonContent, '$.title') = 'Probabilistic and Statistical Methods in Cryptology, An Introduction by Selected Topics'\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"poolName": "Built-in",
+						"databaseName": "mydbname"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/create table')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -228,8 +239,7 @@
 				"metadata": {
 					"saveOutput": true,
 					"synapse_widget": {
-						"version": "0.1",
-						"state": {}
+						"version": "0.1"
 					},
 					"kernelspec": {
 						"name": "synapse_pyspark",
@@ -250,15 +260,12 @@
 						"sparkVersion": "2.4",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
-					},
-					"sessionKeepAliveTimeout": 30
+						"memory": 28
+					}
 				},
 				"cells": [
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Load the NYC Taxi data into the Spark nyctaxi database\n",
 							""
@@ -282,7 +289,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Analyze the NYC Taxi data using Spark and notebooks\n",
 							""
@@ -329,7 +335,6 @@
 					},
 					{
 						"cell_type": "markdown",
-						"metadata": {},
 						"source": [
 							"## Load data from a Spark table into a dedicated SQL pool table"
 						]
@@ -380,7 +385,290 @@
 					"saveOutput": true,
 					"synapse_widget": {
 						"version": "0.1",
-						"state": {}
+						"state": {
+							"e9dcaa45-907a-4226-9a0d-b884d8a3533e": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"startLon": -73.95500946044922,
+												"startLat": 40.73378372192383,
+												"rateCodeId": 1,
+												"passengerCount": 1,
+												"puMonth": 3,
+												"tpepPickupDateTime": "2015-02-28T23:32:43.000Z",
+												"mtaTax": 0.5,
+												"improvementSurcharge": "0.3",
+												"tpepDropoffDateTime": "2015-03-01T00:02:05.000Z",
+												"paymentType": "2",
+												"tripDistance": 8.66,
+												"vendorID": "2",
+												"endLon": -73.9688491821289,
+												"totalAmount": 30.3,
+												"storeAndFwdFlag": "N",
+												"puYear": 2015,
+												"extra": 0.5,
+												"endLat": 40.67795181274414,
+												"fareAmount": 29,
+												"tipAmount": 0,
+												"tollsAmount": 0
+											},
+											{
+												"startLon": -73.9888916015625,
+												"startLat": 40.758304595947266,
+												"rateCodeId": 1,
+												"passengerCount": 1,
+												"puMonth": 3,
+												"tpepPickupDateTime": "2015-02-28T23:41:32.000Z",
+												"mtaTax": 0.5,
+												"improvementSurcharge": "0.3",
+												"tpepDropoffDateTime": "2015-03-01T00:08:59.000Z",
+												"paymentType": "2",
+												"tripDistance": 4.8,
+												"vendorID": "1",
+												"endLon": -73.91947174072266,
+												"totalAmount": 21.3,
+												"storeAndFwdFlag": "N",
+												"puYear": 2015,
+												"extra": 0.5,
+												"endLat": 40.75845718383789,
+												"fareAmount": 20,
+												"tipAmount": 0,
+												"tollsAmount": 0
+											},
+											{
+												"startLon": -73.98031616210938,
+												"startLat": 40.77208709716797,
+												"rateCodeId": 1,
+												"passengerCount": 1,
+												"puMonth": 3,
+												"tpepPickupDateTime": "2015-02-28T23:43:39.000Z",
+												"mtaTax": 0.5,
+												"improvementSurcharge": "0.3",
+												"tpepDropoffDateTime": "2015-03-01T00:06:14.000Z",
+												"paymentType": "2",
+												"tripDistance": 3.96,
+												"vendorID": "2",
+												"endLon": -73.9767074584961,
+												"totalAmount": 18.3,
+												"storeAndFwdFlag": "N",
+												"puYear": 2015,
+												"extra": 0.5,
+												"endLat": 40.73244857788086,
+												"fareAmount": 17,
+												"tipAmount": 0,
+												"tollsAmount": 0
+											},
+											{
+												"startLon": -73.99098205566406,
+												"startLat": 40.73460388183594,
+												"rateCodeId": 1,
+												"passengerCount": 2,
+												"puMonth": 3,
+												"tpepPickupDateTime": "2015-02-28T23:22:27.000Z",
+												"mtaTax": 0.5,
+												"improvementSurcharge": "0.3",
+												"tpepDropoffDateTime": "2015-03-01T00:07:12.000Z",
+												"paymentType": "2",
+												"tripDistance": 9.4,
+												"vendorID": "1",
+												"endLon": -73.91658782958984,
+												"totalAmount": 36.3,
+												"storeAndFwdFlag": "N",
+												"puYear": 2015,
+												"extra": 0.5,
+												"endLat": 40.64944839477539,
+												"fareAmount": 35,
+												"tipAmount": 0,
+												"tollsAmount": 0
+											},
+											{
+												"startLon": -73.9870834350586,
+												"startLat": 40.72951889038086,
+												"rateCodeId": 1,
+												"passengerCount": 1,
+												"puMonth": 3,
+												"tpepPickupDateTime": "2015-02-28T23:59:10.000Z",
+												"mtaTax": 0.5,
+												"improvementSurcharge": "0.3",
+												"tpepDropoffDateTime": "2015-03-01T00:03:36.000Z",
+												"paymentType": "1",
+												"tripDistance": 0.7,
+												"vendorID": "1",
+												"endLon": -73.98332214355469,
+												"totalAmount": 7.56,
+												"storeAndFwdFlag": "N",
+												"puYear": 2015,
+												"extra": 0.5,
+												"endLat": 40.72229766845703,
+												"fareAmount": 5,
+												"tipAmount": 1.26,
+												"tollsAmount": 0
+											},
+											{
+												"startLon": -73.96588897705078,
+												"startLat": 40.71061706542969,
+												"rateCodeId": 1,
+												"passengerCount": 1,
+												"puMonth": 3,
+												"tpepPickupDateTime": "2015-02-28T23:52:38.000Z",
+												"mtaTax": 0.5,
+												"improvementSurcharge": "0.3",
+												"tpepDropoffDateTime": "2015-03-01T00:35:54.000Z",
+												"paymentType": "1",
+												"tripDistance": 5.4,
+												"vendorID": "2",
+												"endLon": -73.98374938964844,
+												"totalAmount": 35.16,
+												"storeAndFwdFlag": "N",
+												"puYear": 2015,
+												"extra": 0.5,
+												"endLat": 40.73839569091797,
+												"fareAmount": 28,
+												"tipAmount": 5.86,
+												"tollsAmount": 0
+											},
+											{
+												"startLon": -73.98614501953125,
+												"startLat": 40.730979919433594,
+												"rateCodeId": 1,
+												"passengerCount": 2,
+												"puMonth": 3,
+												"tpepPickupDateTime": "2015-02-28T23:59:08.000Z",
+												"mtaTax": 0.5,
+												"improvementSurcharge": "0.3",
+												"tpepDropoffDateTime": "2015-03-01T00:17:53.000Z",
+												"paymentType": "1",
+												"tripDistance": 4,
+												"vendorID": "1",
+												"endLon": -74.00798797607422,
+												"totalAmount": 21.35,
+												"storeAndFwdFlag": "N",
+												"puYear": 2015,
+												"extra": 0.5,
+												"endLat": 40.704856872558594,
+												"fareAmount": 16.5,
+												"tipAmount": 3.55,
+												"tollsAmount": 0
+											},
+											{
+												"startLon": -73.95538330078125,
+												"startLat": 40.78017044067383,
+												"rateCodeId": 1,
+												"passengerCount": 1,
+												"puMonth": 3,
+												"tpepPickupDateTime": "2015-02-28T10:47:27.000Z",
+												"mtaTax": 0.5,
+												"improvementSurcharge": "0.3",
+												"tpepDropoffDateTime": "2015-03-01T10:45:00.000Z",
+												"paymentType": "1",
+												"tripDistance": 0.98,
+												"vendorID": "2",
+												"endLon": -73.96331787109375,
+												"totalAmount": 8.4,
+												"storeAndFwdFlag": "N",
+												"puYear": 2015,
+												"extra": 0,
+												"endLat": 40.77479553222656,
+												"fareAmount": 6.5,
+												"tipAmount": 1.1,
+												"tollsAmount": 0
+											},
+											{
+												"startLon": -73.98506927490234,
+												"startLat": 40.74848175048828,
+												"rateCodeId": 1,
+												"passengerCount": 2,
+												"puMonth": 3,
+												"tpepPickupDateTime": "2015-02-28T23:58:47.000Z",
+												"mtaTax": 0.5,
+												"improvementSurcharge": "0.3",
+												"tpepDropoffDateTime": "2015-03-01T00:08:02.000Z",
+												"paymentType": "2",
+												"tripDistance": 1.6,
+												"vendorID": "1",
+												"endLon": -73.98119354248047,
+												"totalAmount": 9.3,
+												"storeAndFwdFlag": "N",
+												"puYear": 2015,
+												"extra": 0.5,
+												"endLat": 40.764556884765625,
+												"fareAmount": 8,
+												"tipAmount": 0,
+												"tollsAmount": 0
+											},
+											{
+												"startLon": -73.98872375488281,
+												"startLat": 40.731266021728516,
+												"rateCodeId": 1,
+												"passengerCount": 1,
+												"puMonth": 3,
+												"tpepPickupDateTime": "2015-02-28T03:07:05.000Z",
+												"mtaTax": 0.5,
+												"improvementSurcharge": "0.3",
+												"tpepDropoffDateTime": "2015-03-01T00:00:00.000Z",
+												"paymentType": "1",
+												"tripDistance": 0.9,
+												"vendorID": "2",
+												"endLon": -74.00213623046875,
+												"totalAmount": 9.36,
+												"storeAndFwdFlag": "N",
+												"puYear": 2015,
+												"extra": 0.5,
+												"endLat": 40.732994079589844,
+												"fareAmount": 6.5,
+												"tipAmount": 1.56,
+												"tollsAmount": 0
+											}
+										],
+										"schema": {
+											"vendorID": "string",
+											"tpepPickupDateTime": "int",
+											"tpepDropoffDateTime": "int",
+											"passengerCount": "int",
+											"tripDistance": "double",
+											"puLocationId": "string",
+											"doLocationId": "string",
+											"startLon": "double",
+											"startLat": "double",
+											"endLon": "double",
+											"endLat": "double",
+											"rateCodeId": "int",
+											"storeAndFwdFlag": "string",
+											"paymentType": "string",
+											"fareAmount": "double",
+											"extra": "double",
+											"mtaTax": "double",
+											"improvementSurcharge": "string",
+											"tipAmount": "double",
+											"tollsAmount": "double",
+											"totalAmount": "double",
+											"puYear": "int",
+											"puMonth": "int"
+										}
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "sum",
+											"categoryFieldKeys": [
+												"vendorID"
+											],
+											"seriesFieldKeys": [
+												"tpepPickupDateTime"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							}
+						}
 					},
 					"kernelspec": {
 						"name": "synapse_pyspark",
@@ -401,10 +689,8 @@
 						"sparkVersion": "2.4",
 						"nodeCount": 3,
 						"cores": 4,
-						"memory": 28,
-						"automaticScaleJobs": false
-					},
-					"sessionKeepAliveTimeout": 30
+						"memory": 28
+					}
 				},
 				"cells": [
 					{
