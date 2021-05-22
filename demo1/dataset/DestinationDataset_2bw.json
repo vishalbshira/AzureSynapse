@@ -1,0 +1,16 @@
+{
+	"name": "DestinationDataset_2bw",
+	"properties": {
+		"annotations": [],
+		"type": "SqlPoolTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "SalesLT",
+			"table": "Product"
+		},
+		"sqlPool": {
+			"referenceName": "sqlpool1",
+			"type": "SqlPoolReference"
+		}
+	}
+}
