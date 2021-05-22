@@ -102,6 +102,72 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/Explore_NYC_Taxi_data')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "NYC Taxi"
+				},
+				"content": {
+					"query": "/*\nThis query shows how the total trip distances and average trip distance relate to the number of passengers.\n*/\n\nSELECT PassengerCount,\n      SUM(TripDistanceMiles) as SumTripDistance,\n      AVG(TripDistanceMiles) as AvgTripDistance\nFROM  dbo.Trip\nWHERE TripDistanceMiles > 0 AND PassengerCount > 0\nGROUP BY PassengerCount\nORDER BY PassengerCount",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"poolName": "sqlpool1",
+						"databaseName": "sqlpool1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Load the NYC Taxi Data')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "NYC Taxi"
+				},
+				"content": {
+					"query": "/*\nThis script will finish in around 60 seconds. It loads 2 million rows of NYC Taxi data into a table called dbo.Trip\n*/\nCREATE TABLE [dbo].[Trip]\n(\n    [DateID] int NOT NULL,\n    [MedallionID] int NOT NULL,\n    [HackneyLicenseID] int NOT NULL,\n    [PickupTimeID] int NOT NULL,\n    [DropoffTimeID] int NOT NULL,\n    [PickupGeographyID] int NULL,\n    [DropoffGeographyID] int NULL,\n    [PickupLatitude] float NULL,\n    [PickupLongitude] float NULL,\n    [PickupLatLong] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [DropoffLatitude] float NULL,\n    [DropoffLongitude] float NULL,\n    [DropoffLatLong] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [PassengerCount] int NULL,\n    [TripDurationSeconds] int NULL,\n    [TripDistanceMiles] float NULL,\n    [PaymentType] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,\n    [FareAmount] money NULL,\n    [SurchargeAmount] money NULL,\n    [TaxAmount] money NULL,\n    [TipAmount] money NULL,\n    [TollsAmount] money NULL,\n    [TotalAmount] money NULL\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCOPY INTO [dbo].[Trip]\nFROM 'https://nytaxiblob.blob.core.windows.net/2013/Trip2013/QID6392_20171107_05910_0.txt.gz'\nWITH\n(\n    FILE_TYPE = 'CSV',\n    FIELDTERMINATOR = '|',\n    FIELDQUOTE = '',\n    ROWTERMINATOR='0X0A',\n    COMPRESSION = 'GZIP'\n)\nOPTION (LABEL = 'COPY : Load [dbo].[Trip] - Taxi dataset');",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"poolName": "sqlpool1",
+						"databaseName": "sqlpool1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 1')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [DateID]\n,[MedallionID]\n,[HackneyLicenseID]\n,[PickupTimeID]\n,[DropoffTimeID]\n,[PickupGeographyID]\n,[DropoffGeographyID]\n,[PickupLatitude]\n,[PickupLongitude]\n,[PickupLatLong]\n,[DropoffLatitude]\n,[DropoffLongitude]\n,[DropoffLatLong]\n,[PassengerCount]\n,[TripDurationSeconds]\n,[TripDistanceMiles]\n,[PaymentType]\n,[FareAmount]\n,[SurchargeAmount]\n,[TaxAmount]\n,[TipAmount]\n,[TollsAmount]\n,[TotalAmount]\n FROM [dbo].[Trip]\n\n select count(*) from dbo.trip;",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"poolName": "sqlpool1",
+						"databaseName": "sqlpool1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/create table')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
