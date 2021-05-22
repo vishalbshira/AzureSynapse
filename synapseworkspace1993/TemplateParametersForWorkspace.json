@@ -8,6 +8,9 @@
 		"synapseworkspace1993-WorkspaceDefaultSqlServer_connectionString": {
 			"value": ""
 		},
+		"nyc_tlc_yellow_sasUri": {
+			"value": ""
+		},
 		"synapseworkspace1993-WorkspaceDefaultStorage_properties_typeProperties_url": {
 			"value": "https://datalake1993.dfs.core.windows.net"
 		}
