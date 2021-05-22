@@ -5,6 +5,9 @@
 		"workspaceName": {
 			"value": "synapseworkspace1993"
 		},
+		"AzureSqlDatabase1_connectionString": {
+			"value": ""
+		},
 		"synapseworkspace1993-WorkspaceDefaultSqlServer_connectionString": {
 			"value": ""
 		},
