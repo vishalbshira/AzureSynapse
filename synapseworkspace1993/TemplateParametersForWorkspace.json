@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "synapseworkspace1993"
+		},
+		"synapseworkspace1993-WorkspaceDefaultSqlServer_connectionString": {
+			"value": ""
+		},
+		"synapseworkspace1993-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://datalake1993.dfs.core.windows.net"
+		}
+	}
+}
