@@ -1,0 +1,20 @@
+{
+	"name": "Explore_NYC_Taxi_data",
+	"properties": {
+		"folder": {
+			"name": "NYC Taxi"
+		},
+		"content": {
+			"query": "/*\nThis query shows how the total trip distances and average trip distance relate to the number of passengers.\n*/\n\nSELECT PassengerCount,\n      SUM(TripDistanceMiles) as SumTripDistance,\n      AVG(TripDistanceMiles) as AvgTripDistance\nFROM  dbo.Trip\nWHERE TripDistanceMiles > 0 AND PassengerCount > 0\nGROUP BY PassengerCount\nORDER BY PassengerCount",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"poolName": "sqlpool1",
+				"databaseName": "sqlpool1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
